@@ -12,103 +12,114 @@ import java.io.*;
  */
 public class Progetto {
 
-    static int strada[][];
-    static int grafico[][];
-    
-    static int rt[][];
-    static int c;
+    static int routingtable[][];
+    static int tabiniziale[][];
+    static int tabordinamento[][];
+
+    static int nodi;
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("numero di nodi ");
-        c = Integer.parseInt(br.readLine());
+        nodi = Integer.parseInt(br.readLine());
 
-        grafico = new int[c][c];
-        strada = new int[c][c];
-        rt = new int[c][c];
-        for (int i = 0; i < c; i++) {
-            for (int j = 0; j < c; j++) {
+        //grafico con inizializzazione
+        routingtable = new int[nodi][nodi];
+        tabiniziale = new int[nodi][nodi];
+        tabordinamento = new int[nodi][nodi];
+
+        //inserimento valori in tabella iniziale
+        for (int i = 0; i < nodi; i++) {
+            for (int j = 0; j < nodi; j++) {
                 if (i == j) {
-                    grafico[i][j] = 0;
+                    tabiniziale[i][j] = 0;
                 } else {
-                    grafico[i][j] = 9999;
+                    tabiniziale[i][j] = 9999;
                 }
             }
         }
 
-        for (int i = 0; i < c; i++) {
-            System.out.println("dati del nodo " + (i + 1) + ":");
-            
+        //chiedo i dati per ogni nodo
+        for (int i = 0; i < nodi; i++) {
+            System.out.println("nodo i " + (i + 1) + ":");
+            //nodo di arrivo
             System.out.print("arrivo ");
             int a = Integer.parseInt(br.readLine()) - 1;
-            
+
+            //costo
             System.out.print("costo del collegamento ");
             int cn = Integer.parseInt(br.readLine());
-            grafico[i][a] = cn;
-            grafico[a][i] = cn;
+            tabiniziale[i][a] = cn;
+            tabiniziale[a][i] = cn;
         }
-        Inizio();
+
+        //aggiungo i val alle altre tabele 
+        for (int i = 0; i < nodi; i++) {
+            for (int j = 0; j < nodi; j++) {
+                if (i == j) {
+                    routingtable[i][j] = 0;//costo a loro 0
+                    tabordinamento[i][j] = i;//collegamenti
+                } else {
+                    routingtable[i][j] = 9999;//metto i cosi a "infinito"
+                    tabordinamento[i][j] = 1000;//metto un cikkegamento impossibile
+                }
+            }
+        }
 
         System.out.println(" - ");
         Visualizzatabella();
     }
 
+    //stampa la routing table dopo averla ordinata
     static void Visualizzatabella() {
-        Aggiorna();
+        Ordina();
         Stampatabella();
         System.out.println();
     }
-
-    static void Aggiornatabella(int source) {
-        for (int i = 0; i < c; i++) {
-            if (grafico[source][i] != 9999) {
-                int dist = grafico[source][i];
-                for (int j = 0; j < c; j++) {
-                    int inter_dist = rt[i][j];
-                    if (strada[i][j] == source) {
-                        inter_dist = 9999;
+   
+//inizio ordinamento
+    static void Aggiornatabella(int n) {
+        for (int i = 0; i < nodi; i++) {
+            if (tabiniziale[n][i] != 9999) {//se il costo è normale 
+                int dist = tabiniziale[n][i];//allora lo prendo
+                for (int j = 0; j < nodi; j++) {
+                    int inter_dist = routingtable[i][j];//prendo il costo della routing table
+                    if (tabordinamento[i][j] == n) { // se invece il collegamento è con il nodo stesso 
+                        inter_dist = 9999;// allora riemtto un costo "infinito" in modo che non esegua il prox if
                     }
-                    if (dist + inter_dist < rt[source][j]) {
-                        rt[source][j] = dist + inter_dist;
-                        strada[source][j] = i;
+                    if (dist + inter_dist < routingtable[n][j]) {//se cositi minori di quelli in uso 
+                        routingtable[n][j] = dist + inter_dist; // settati
+                        tabordinamento[n][j] = i;//creazione collegamento
                     }
                 }
             }
         }
     }
-
-    static void Aggiorna() {
-        int k = 0;
-        for (int i = 0; i < 4 * c; i++) {
-            Aggiornatabella(k);
-            k++;
-            if (k == c) {
-                k = 0;
-            }
+//stampa la routing table
+    static void Stampatabella() { 
+        for ( int x = 1; x<nodi; x++)//stampata prima riga
+        {
+            System.out.println( x );
         }
-    }
-
-    static void Inizio() {
-        for (int i = 0; i < c; i++) {
-            for (int j = 0; j < c; j++) {
-                if (i == j) {
-                    rt[i][j] = 0;
-                    strada[i][j] = i;
-                } else {
-                    rt[i][j] = 9999;
-                    strada[i][j] = 100;
-                }
-            }
-        }
-    }
-
-    static void Stampatabella() {
-        for (int i = 0; i < c; i++) {
-            for (int j = 0; j < c; j++) {
-                System.out.print("distanza " + rt[i][j] + "    ");
+        System.out.println();
+        for (int i = 0; i < nodi; i++) {//costi che vengono stampati 
+            System.out.println(i + 1 + "-");//stampa prima colonna con i nodi
+            for (int j = 0; j < nodi; j++) {
+                System.out.print(routingtable[i][j] + " - ");//stampo costo
             }
             System.out.println();
         }
     }
-}
+//ordina la routing table
+    static void Ordina() {
+        int x = 0;
+        for (int i = 0; i < 4 * nodi; i++) {
+            Aggiornatabella(x);
+            x++;
+            if (x == nodi) {
+                x = 0;
+            }
+        }
+    }
 
+}
